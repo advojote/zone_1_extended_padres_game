@@ -26,11 +26,19 @@ mycursor = mydb.cursor()
 print(mydb)
 
 def add_new_area_to_table(id, area_name, area_list_title, areas_to_ignore):
+    mycursor.execute("use zone_1_game_data")
     if not id in areas_to_ignore:
-        sql = "INSERT INTO areas (id, name) VALUES (%s, %s)"
-        val = (int(id), area_name)
-        mycursor.execute(sql, val)
+        sql = "INSERT INTO areas (id, name) VALUES (%s, %s);"
+        print("SQL Query:", sql % (id, repr(area_name)))  # Debugging print
+        mycursor.execute(sql, (id, area_name))
+        mydb.commit()  # Make sure to commit the changes to the database
         print("adding area ", id, " ", area_name)
+
+def add_new_missionary_to_table(name, area_id, zone_id):
+    mycursor.execute("use zone_1_game_data")
+    sql = "INSERT INTO missionaries (name, area, district, zone) VALUES (%s, %s, %s, %s);"
+    mycursor.execute(sql, (name, area_id, 0, zone_id))
+    mydb.commit()
 
 def main():
     """Main Function"""
@@ -47,16 +55,21 @@ def main():
         "9999" #Advojote
     ]
     #extract area data
-    extract_areas = input("Upload area data? (y/n)")
-    if extract_areas == "y":
-        sheet_data = area_sheet.get_values("A1", "B1000")
+    if input("Upload area data? (y/n)") == "y":
+        sheet_data = area_sheet.get_values("A2", "B1000")
         for element in sheet_data:
             add_new_area_to_table(element[0], element[1], AREA_LIST_TITLE, AREAS_TO_IGNORE)
         print("Finished area uploading")            
     else:
         print("Not uploading areas")
     # print(sheet_data)
-
+    # extract missionary data
+    if input("Upload missionary data? (y/n)") == "y":
+        sheet_data = missionary_sheet.get_values("A2", "C1000")
+        for element in sheet_data:
+            add_new_missionary_to_table(element[0], element[1], element[2])
+    else:
+        print("Not uploading missionaries")
 
     
 
